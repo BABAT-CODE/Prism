@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Header,
   Footer,
@@ -9,10 +10,41 @@ import {
   ContractErrorView,
 } from "@/components";
 import type { DiagnosticReport } from "@/lib/types";
+import { useSessionStore } from "@/store/session";
+import { useNetworkStore } from "@/store/network";
 
-export default function DecodePage() {
+function DecodePageContent() {
   const [activeTab, setActiveTab] = useState<"diagnose" | "lookup">("diagnose");
   const [report, setReport] = useState<DiagnosticReport | null>(null);
+
+  const { addToHistory, history } = useSessionStore();
+  const { network } = useNetworkStore();
+
+  const searchParams = useSearchParams();
+  const txHashParam = searchParams.get("txHash");
+
+  // If the user navigated here from the history list, pre-load the last matching report
+  useEffect(() => {
+    if (txHashParam) {
+      const entry = history.find((h) => h.txHash === txHashParam);
+      if (entry) {
+        setReport(entry.report);
+      }
+    }
+    // Only run on initial mount / txHashParam change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [txHashParam]);
+
+  function handleDecode(decoded: DiagnosticReport | null) {
+    setReport(decoded);
+    if (decoded) {
+      // Use the txHash from the URL param if present; otherwise generate a placeholder key
+      const txHash =
+        txHashParam ??
+        `${decoded.error_category.toLowerCase()}-${decoded.error_code}-${Date.now()}`;
+      addToHistory(txHash, network, decoded);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-violet-500/30 selection:text-violet-200">
@@ -32,7 +64,7 @@ export default function DecodePage() {
           </p>
         </div>
 
-        {}
+        {/* Tabs */}
         <div className="flex justify-center border-b border-slate-800 mb-8 max-w-md mx-auto">
           <button
             onClick={() => setActiveTab("diagnose")}
@@ -56,11 +88,11 @@ export default function DecodePage() {
           </button>
         </div>
 
-        {}
+        {/* Tab content */}
         <div className="transition-all duration-300">
           {activeTab === "diagnose" ? (
             <div className="space-y-6">
-              <DecodeForm onDecode={setReport} />
+              <DecodeForm onDecode={handleDecode} />
               {report && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <ErrorCard report={report} />
@@ -77,5 +109,13 @@ export default function DecodePage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function DecodePage() {
+  return (
+    <Suspense>
+      <DecodePageContent />
+    </Suspense>
   );
 }
