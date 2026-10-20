@@ -23,7 +23,7 @@ export default function ErrorCard({ report }: ErrorCardProps) {
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl max-w-3xl mx-auto my-6 text-slate-100">
+    <div className="card-interactive bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl max-w-3xl mx-auto my-6 text-slate-100">
       <div className="flex items-start justify-between mb-4">
         <div>
           <span className="text-xs font-bold text-violet-400 uppercase tracking-wider">
