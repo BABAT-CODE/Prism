@@ -18,6 +18,23 @@ By participating, you agree to follow our [Code of Conduct](./CODE_OF_CONDUCT.md
 
 Refer to the [Requirements section in the README](../README.md#requirements) for environment setup.
 
+### Install Git Hooks
+
+Install `pre-commit` with pipx (install pipx with your OS package manager if needed), then install project dependencies and Rust lint components and enable the repository hooks:
+
+```sh
+pipx install pre-commit
+pnpm install
+rustup component add rustfmt clippy
+pre-commit install
+```
+
+Hooks run Rust formatting and Clippy for staged Rust changes, and Prettier and the workspace ESLint scripts for staged TypeScript changes. To run them manually against all supported files:
+
+```sh
+pre-commit run --all-files
+```
+
 ## License
 
 Contributions are licensed under the project's MIT License.
